@@ -23,6 +23,7 @@
 #if defined HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "abuse_version.h"
 
 #ifdef WIN32
 #include <Windows.h>
