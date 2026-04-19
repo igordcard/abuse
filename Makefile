@@ -1,8 +1,9 @@
 UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
 
 BUILD_DIR ?= build
-PREFIX    ?= $(HOME)/.local
 JOBS      ?= $(shell (command -v nproc >/dev/null && nproc) || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+DIST_DIR  ?= dist
 
 # Version string derived from git tags. Matches the format baked into the
 # binary by CMake and shown on the title screen. Falls back to 0.0.0 if git
@@ -12,18 +13,25 @@ VERSION := $(shell git describe --tags --long --match 'v*' 2>/dev/null | \
     | sed 's/^v//' 2>/dev/null || echo 0.0.0)
 
 ifeq ($(UNAME_S),Darwin)
-    OS       := macos
-    APP_PATH := $(PREFIX)/abuse.app
-    RUN_CMD  := open "$(APP_PATH)"
+    OS           := macos
+    # ~/Applications is scanned by Launchpad / Spotlight; /Applications would
+    # require sudo. `$(HOME)/.local` is not scanned, so installing there
+    # hides the app from the macOS launcher.
+    PREFIX       ?= $(HOME)/Applications
+    APP_PATH     := $(PREFIX)/abuse.app
+    RUN_CMD      := open "$(APP_PATH)"
+    DIST_ARCHIVE := $(DIST_DIR)/Abuse-v$(VERSION)-macos-$(UNAME_M).zip
 else ifeq ($(UNAME_S),Linux)
-    OS       := linux
-    APP_PATH := $(PREFIX)/bin/abuse
-    RUN_CMD  := "$(APP_PATH)"
+    OS           := linux
+    PREFIX       ?= $(HOME)/.local
+    APP_PATH     := $(PREFIX)/bin/abuse
+    RUN_CMD      := "$(APP_PATH)"
+    DIST_ARCHIVE := $(DIST_DIR)/Abuse-v$(VERSION)-linux-$(UNAME_M).tar.gz
 else
     $(error Unsupported platform: $(UNAME_S). Use the CMake build directly.)
 endif
 
-.PHONY: all help configure setup build install run version clean distclean
+.PHONY: all help configure setup build install run version dist clean distclean
 
 all: setup
 
@@ -32,6 +40,7 @@ help:
 	@echo "  setup     configure and build (default)"
 	@echo "  install   build and install to PREFIX"
 	@echo "  run       launch the installed game"
+	@echo "  dist      build a redistributable archive in $(DIST_DIR)/"
 	@echo "  version   print the version derived from git tags"
 	@echo "  clean     remove the build directory"
 	@echo "  distclean alias for clean"
@@ -58,9 +67,36 @@ build: setup
 
 install: setup
 	cmake --install "$(BUILD_DIR)"
+ifeq ($(OS),macos)
+	@# Force Launch Services to re-scan the bundle so Launchpad and
+	@# Spotlight pick up the newly installed / updated app immediately.
+	@/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+	    -f "$(APP_PATH)" >/dev/null 2>&1 || true
+endif
 	@echo ""
 	@echo "Installed to: $(APP_PATH)"
 	@echo "Run with: make run   (or: $(RUN_CMD))"
+
+# Build a redistributable archive for the current host. On macOS we use
+# `ditto` with the sequester-resources flag so extended attributes, code
+# signatures and the bundle layout survive a round-trip through unzip.
+# The archive is self-contained — it includes the .app bundle with all
+# game data under Contents/Resources/data.
+dist: setup
+	@mkdir -p "$(DIST_DIR)"
+	@rm -rf "$(DIST_DIR)/stage" && mkdir -p "$(DIST_DIR)/stage"
+	cmake --install "$(BUILD_DIR)" --prefix "$(DIST_DIR)/stage"
+ifeq ($(OS),macos)
+	@rm -f "$(DIST_ARCHIVE)"
+	ditto -c -k --sequesterRsrc --keepParent \
+	    "$(DIST_DIR)/stage/abuse.app" "$(DIST_ARCHIVE)"
+else
+	@rm -f "$(DIST_ARCHIVE)"
+	tar -czf "$(DIST_ARCHIVE)" -C "$(DIST_DIR)/stage" .
+endif
+	@rm -rf "$(DIST_DIR)/stage"
+	@echo ""
+	@echo "Archive: $(DIST_ARCHIVE)"
 
 run:
 	@test -e "$(APP_PATH)" || { \

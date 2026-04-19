@@ -33,13 +33,21 @@ major version"), follow this process:
    are pushed to the remote.
 2. **Determine the new version**: run
    `git tag -l --sort=-version:refname | head -1` to find the latest tag.
-   Bump the minor (e.g. `v0.6.0` -> `v0.7.0`) or major (e.g. `v0.6.0` ->
-   `v1.0.0`) as requested.
+   Bump the minor (e.g. `v26.0.0` -> `v26.1.0`) or major (e.g. `v26.9.0` ->
+   `v27.0.0`) as requested.
 3. **Review commits**: run
    `git log <previous_tag>..HEAD --format="%h %s%n%b---"` to read all commit
-   titles and descriptions since the last tag.
+   titles and descriptions since the last tag. For the very first release of
+   this fork, use `git log --author="Igor DC" --reverse --format="%h %s%n%b---"`
+   starting from the first fork commit.
 4. **Tag and push**: `git tag <new_tag> && git push origin <new_tag>`.
-5. **Write release notes**: create a curated, user-oriented changelog grouped
+5. **Build the release artifact**: run `make dist` on each target platform
+   (currently only macOS is supported). This produces
+   `dist/Abuse-v<version>-<os>-<arch>.zip` containing the signed-bundle
+   layout (macOS) or a tarball (Linux). The archive name includes the OS
+   and `uname -m` architecture so multiple artifacts can coexist on a
+   single release.
+6. **Write release notes**: create a curated, user-oriented changelog grouped
    by theme (not one entry per commit). Use this format:
    - Group related commits into sections with `###` headings (e.g. "Gameplay",
      "Build / Packaging", "Fixes", "Developer").
@@ -48,9 +56,13 @@ major version"), follow this process:
    - Omit internal refactors, test-only changes, and documentation-only
      commits unless they are notable.
    - End with a separator line and a "Full Changelog" link to the repo's
-     `compare/<previous_tag>...<new_tag>` URL.
-6. **Create the release**:
-   `gh release create <new_tag> --title "<new_tag>" --notes "<notes>"`.
-7. **For major versions**: before tagging, proactively recommend backwards
+     `compare/<previous_tag>...<new_tag>` URL. For the first release of the
+     fork, mention that this line of versions started as a fork of
+     `metinc/abuse` so the provenance is clear in the changelog story.
+7. **Create the release and attach artifacts**:
+   `gh release create <new_tag> --title "<new_tag>" --notes "<notes>" <artifacts...>`.
+   Pass every archive produced by step 5 as positional arguments so they are
+   uploaded as release assets.
+8. **For major versions**: before tagging, proactively recommend backwards
    compatibility decisions (save/config format stability, migration tooling,
    deprecation policies) and ask the developer before proceeding.

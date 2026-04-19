@@ -83,8 +83,12 @@ set_target_properties(abuse PROPERTIES MACOSX_BUNDLE true)
 # Note this doesn't install the icon, that's done later
 set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_ICON_FILE "abuse")
 set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Abuse")
-set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "${abuse_VERSION}")
-set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION "${abuse_VERSION}")
+# CFBundleIdentifier is required for Launchpad / Spotlight / `open -a` to
+# recognise the app. Without it the bundle is invisible to the launcher.
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER "com.github.igordcard.abuse")
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_SHORT_VERSION_STRING "${ABUSE_VERSION}")
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_BUNDLE_VERSION "${ABUSE_VERSION}")
+set_target_properties(abuse PROPERTIES MACOSX_BUNDLE_COPYRIGHT "GPL-2.0-or-later, based on metinc/abuse")
 
 target_link_libraries(abuse
     lisp

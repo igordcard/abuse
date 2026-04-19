@@ -56,6 +56,33 @@ Abuse. Add entries as changes are made.
 - `GLEW::GLEW` is the imported target from the Homebrew `glew` config; the
   legacy `${GLEW_LIBRARIES}` / `${GLEW_INCLUDE_DIRS}` variables are not
   populated by that config and must not be used.
-- Default install layout is an `abuse.app` bundle at the install prefix.
-  Running from the shell uses `open $(PREFIX)/abuse.app`; the Makefile
-  `make run` wraps this.
+- Default install prefix on macOS is `$HOME/Applications`, which is scanned
+  by Launchpad and Spotlight. `$HOME/.local` is not scanned by either, so
+  installing there hides the app from the launcher. `/Applications` is also
+  valid but requires `sudo make install PREFIX=/Applications`.
+- `Info.plist` requires a non-empty `CFBundleIdentifier` for Launchpad /
+  Spotlight / `open -a` to index the bundle. Set via
+  `MACOSX_BUNDLE_GUI_IDENTIFIER` to `com.github.igordcard.abuse`.
+  `MACOSX_BUNDLE_SHORT_VERSION_STRING` and `MACOSX_BUNDLE_BUNDLE_VERSION`
+  use the full `ABUSE_VERSION` string (including the commit short hash)
+  so `mdls` and the Finder Info panel show the exact build.
+- After installing, the Makefile runs `lsregister -f "$APP_PATH"` to force
+  Launch Services to re-index the bundle so Launchpad picks up the new or
+  updated app without requiring a logout / `killall Dock`.
+- Data files are discovered at runtime via `CFBundleCopyBundleURL`
+  (`src/sdlport/setup.cpp`) rather than the compile-time `ASSETDIR` define,
+  which means the `.app` is relocatable — a user can drag it to
+  `/Applications` after installing and the game still finds its data. The
+  dist archive relies on this.
+
+## Release Artifacts
+
+- `make dist` produces a self-contained archive under `dist/` named
+  `Abuse-v<version>-<os>-<arch>.<ext>` where `<arch>` is `uname -m` and
+  `<ext>` is `zip` on macOS, `tar.gz` on Linux.
+- On macOS the archive is built with `ditto -c -k --sequesterRsrc
+  --keepParent` so extended attributes, resource forks, and the bundle
+  layout survive a round-trip through unzip on other macOS machines.
+- The archive name encodes OS and architecture so a single GitHub release
+  can carry multiple binaries (e.g. `macos-arm64` and `macos-x86_64`)
+  without collision.
