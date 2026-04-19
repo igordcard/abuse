@@ -727,6 +727,14 @@ void Game::draw_map(view *v, bool interpolate, uint32_t elapsedMsFixed)
                 main_screen->SetClip(v->m_aa, v->m_bb + ivec2(1));
             image *tit = cache.img(title_screen);
             main_screen->PutImage(tit, main_screen->Size() / 2 - tit->Size() / 2);
+            if (console_font && state != SCENE_STATE)
+            {
+                char const *version_text = "v" PACKAGE_VERSION;
+                ivec2 char_size = console_font->Size();
+                ivec2 pos(3, main_screen->Size().y - char_size.y - 2);
+                console_font->PutString(main_screen, pos + ivec2(1, 1), version_text, 0);
+                console_font->PutString(main_screen, pos, version_text);
+            }
             if (state == SCENE_STATE)
                 main_screen->SetClip(caa, cbb);
             wm->flush_screen();

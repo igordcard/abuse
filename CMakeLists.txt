@@ -3,10 +3,35 @@ cmake_policy(SET CMP0074 NEW)
 cmake_policy(SET CMP0177 NEW)
 
 project(abuse
-    VERSION 1.0.5
+    VERSION 26.0.0
     DESCRIPTION "Run and gun game"
     LANGUAGES C CXX
 )
+
+# Derive the full version string from git tags. Tags of the form `vX.Y.Z`
+# define the major.minor.patch; commits since the tag are added to the patch,
+# and the 7-char commit hash is appended. Example: tag v0.1.0 with 3 commits
+# on top produces `0.1.3-abc1234`. Falls back to PROJECT_VERSION if git or the
+# tag are not available.
+set(ABUSE_VERSION "${PROJECT_VERSION}")
+find_package(Git QUIET)
+if(Git_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} describe --tags --long --match "v*"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE _git_describe
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE _git_result
+        ERROR_QUIET
+    )
+    if(_git_result EQUAL 0)
+        if(_git_describe MATCHES "^v([0-9]+)\\.([0-9]+)\\.([0-9]+)-([0-9]+)-g([0-9a-f]+)$")
+            math(EXPR _patch "${CMAKE_MATCH_3} + ${CMAKE_MATCH_4}")
+            set(ABUSE_VERSION "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${_patch}-${CMAKE_MATCH_5}")
+        endif()
+    endif()
+endif()
+message(STATUS "Abuse version: ${ABUSE_VERSION}")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -64,7 +89,7 @@ endif()
 add_definitions(-DASSETDIR="${CMAKE_INSTALL_PREFIX}/${ASSETDIR}")
 
 add_definitions(-DPACKAGE_NAME="abuse")
-add_definitions(-DPACKAGE_VERSION="${PROJECT_VERSION}")
+add_definitions(-DPACKAGE_VERSION="${ABUSE_VERSION}")
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
