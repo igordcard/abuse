@@ -8,6 +8,13 @@ project(abuse
     LANGUAGES C CXX
 )
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    add_compile_options(-Wno-register -Wno-deprecated-register)
+endif()
+
 # Options
 option(ABUSE_ENABLE_NETWORK "Enable networking support" ON)
 
@@ -21,8 +28,7 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIRS})
-link_libraries(${GLEW_LIBRARIES})
+link_libraries(GLEW::GLEW)
 
 # System checks
 include(CheckIncludeFiles)
@@ -227,6 +233,6 @@ if(APPLE)
     install(TARGETS abuse
         BUNDLE DESTINATION .)
 
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/data/"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/abuse.app/Contents/Resources/data")
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/data/"
+        DESTINATION "abuse.app/Contents/Resources/data")
 endif()

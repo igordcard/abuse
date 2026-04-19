@@ -30,13 +30,13 @@ With that set up, the CMake generation should succeed without any error.
 
 ### macOS
 
-macOS should have many of the necessary tools already. The easiest method for installing CMake, SDL, and SDL_mixer is using [Homebrew](http://brew.sh/):
+macOS should have many of the necessary tools already. The easiest way to install the remaining dependencies is via [Homebrew](http://brew.sh/):
 
 ```sh
-brew install cmake
-brew install sdl
-brew install sdl_mixer
+brew install cmake sdl2 sdl2_mixer opencv glew
 ```
+
+OpenGL is provided by the system SDK and does not need to be installed separately.
 
 # Compiling
 
@@ -60,6 +60,11 @@ sudo cmake --build ./build --target install
 
 (If you prefer a local installation, omit sudo and specify a custom prefix:
 `cmake -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local`)
+
+On macOS, the install produces an `abuse.app` bundle at the install prefix
+(default `/usr/local/abuse.app`). Running `abuse` from the shell requires the
+bundle's `Contents/MacOS` directory to be on your `PATH`, or you can launch
+the bundle directly with `open /usr/local/abuse.app`.
 
 Once installed, you can run the game:
 

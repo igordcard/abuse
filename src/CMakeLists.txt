@@ -172,10 +172,10 @@ if(WIN32)
 else()
     # Under Linux, we want the tools in bin
     install(TARGETS abuse RUNTIME DESTINATION bin
-    BUNDLE DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    BUNDLE DESTINATION ".")
     if(APPLE)
         # macOS should probably include SDL rather than dynamically link them like Linux does
         # Add icon
-        install(FILES "../macOS/abuse.icns" DESTINATION "${CMAKE_INSTALL_PREFIX}/abuse.app/Contents/Resources")
+        install(FILES "../macOS/abuse.icns" DESTINATION "abuse.app/Contents/Resources")
     endif()
 endif()

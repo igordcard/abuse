@@ -12,7 +12,7 @@ include_directories(
 )
 
 
-target_link_libraries(lisp SDL2_mixer::SDL2_mixer)
+target_link_libraries(lisp SDL2::SDL2 SDL2_mixer::SDL2_mixer)
 
 #INCLUDES = -I$(srcdir) -I$(srcdir)/../ -I$(srcdir)/../imlib $(SDL2_CFLAGS)
 
