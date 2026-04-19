@@ -38,6 +38,20 @@ brew install cmake sdl2 sdl2_mixer opencv glew
 
 OpenGL is provided by the system SDK and does not need to be installed separately.
 
+### macOS: "abuse is damaged and can't be opened"
+
+Releases downloaded from GitHub are ad-hoc signed but not notarised (that
+requires a paid Apple Developer ID). After extracting the zip, remove the
+quarantine attribute macOS attaches to downloads:
+
+```sh
+xattr -dr com.apple.quarantine /path/to/abuse.app
+```
+
+Then drag it to `/Applications` or `~/Applications` and launch normally.
+On first launch you may still see an "unidentified developer" prompt —
+right-click the app and choose **Open** to bypass it once.
+
 # Compiling
 
 Clone this repository.

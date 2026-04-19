@@ -96,3 +96,14 @@ Abuse. Add entries as changes are made.
 - The archive name encodes OS and architecture so a single GitHub release
   can carry multiple binaries (e.g. `macos-arm64` and `macos-x86_64`)
   without collision.
+- On macOS the bundle is ad-hoc signed (`codesign --deep --force --sign -`)
+  before `ditto` archives it. Without any signature, the quarantine xattr
+  that Safari / Finder attach to downloads causes Gatekeeper to reject the
+  app with "abuse is damaged and can't be opened." Ad-hoc signing is
+  sufficient to remove that error; users still see an "unidentified
+  developer" prompt on first launch (right-click → Open bypasses it).
+  Eliminating that prompt would require a paid Apple Developer ID and
+  notarisation, which this fork does not currently have. The
+  `xattr -dr com.apple.quarantine <app>` workaround is documented in
+  `BUILDING.md` for users who prefer not to go through the right-click
+  dialog.

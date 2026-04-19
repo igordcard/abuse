@@ -88,6 +88,13 @@ dist: setup
 	cmake --install "$(BUILD_DIR)" --prefix "$(DIST_DIR)/stage"
 ifeq ($(OS),macos)
 	@rm -f "$(DIST_ARCHIVE)"
+	@# Ad-hoc sign the bundle so Gatekeeper does not flag the downloaded
+	@# zip as "damaged". Without any signature, the quarantine attribute
+	@# that Safari / Finder attach on download causes macOS to refuse to
+	@# launch the app. Ad-hoc (`-`) means no Developer ID — users will
+	@# still see an "unidentified developer" prompt on first launch, but
+	@# the "damaged" error is gone.
+	codesign --deep --force --sign - "$(DIST_DIR)/stage/abuse.app"
 	ditto -c -k --sequesterRsrc --keepParent \
 	    "$(DIST_DIR)/stage/abuse.app" "$(DIST_ARCHIVE)"
 else
