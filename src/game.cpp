@@ -732,7 +732,8 @@ void Game::draw_map(view *v, bool interpolate, uint32_t elapsedMsFixed)
             {
                 char const *version_text = "v" PACKAGE_VERSION;
                 ivec2 char_size = console_font->Size();
-                ivec2 pos(3, main_screen->Size().y - char_size.y - 2);
+                int text_width = char_size.x * (int)strlen(version_text);
+                ivec2 pos(main_screen->Size().x - text_width - 3, 2);
                 console_font->PutString(main_screen, pos + ivec2(1, 1), version_text, 0);
                 console_font->PutString(main_screen, pos, version_text);
             }
