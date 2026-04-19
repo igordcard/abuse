@@ -79,6 +79,7 @@
 //
 
 extern CrcManager *net_crcs;
+extern net_protocol *prot;
 
 Game *the_game = NULL;
 WindowManager *wm = NULL;
@@ -2522,8 +2523,23 @@ int main(int argc, char *argv[])
             {
                 if (demo_man.current_state() == demo_manager::NORMAL)
                 {
-                    net_receive();
-                    net_send();
+                    if (prot)
+                    {
+                        // Multiplayer: receive server-aggregated input for
+                        // this tick, then send our local input for the next.
+                        net_receive();
+                        net_send();
+                    }
+                    else
+                    {
+                        // Single player: send local input into base->packet
+                        // and process it in the same tick. Running net_send
+                        // before net_receive (instead of the multiplayer
+                        // order) eliminates a full physics tick (~65 ms) of
+                        // input latency that the network round-trip imposes.
+                        net_send();
+                        net_receive();
+                    }
                 }
                 else
                     demo_man.do_inputs();
